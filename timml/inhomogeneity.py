@@ -5,15 +5,15 @@ from .aquifer_parameters import param_maq
 from .constant import ConstantInside, ConstantStar
 from .intlinesink import IntHeadDiffLineSink, IntFluxDiffLineSink
 
-__all__ = ['PolygonInhomMaq']
+__all__ = ["PolygonInhomMaq"]
+
 
 class PolygonInhom(AquiferData):
     tiny = 1e-8
 
-    def __init__(self, model, xy, kaq, c, z, npor, ltype, hstar,
-                 order, ndeg):
+    def __init__(self, model, xy, kaq, c, z, npor, ltype, hstar, order, ndeg):
         # All input variables except model should be numpy arrays
-        # That should be checked outside this function):        
+        # That should be checked outside this function):
         AquiferData.__init__(self, model, kaq, c, z, npor, ltype)
         self.order = order
         self.ndeg = ndeg
@@ -24,9 +24,11 @@ class PolygonInhom(AquiferData):
         Zin = 1e-6j
         Zout = -1e-6j
         self.zcin = 0.5 * (self.z2 - self.z1) * Zin + 0.5 * (
-        self.z1 + self.z2)  # point at center on inside
+            self.z1 + self.z2
+        )  # point at center on inside
         self.zcout = 0.5 * (self.z2 - self.z1) * Zout + 0.5 * (
-        self.z1 + self.z2)  # point at center on outside
+            self.z1 + self.z2
+        )  # point at center on outside
         self.x = np.hstack((self.z1.real, self.z2[-1].real))
         self.y = np.hstack((self.z1.imag, self.z2[-1].imag))
         self.xmin = min(self.x)
@@ -35,12 +37,16 @@ class PolygonInhom(AquiferData):
         self.ymax = max(self.y)
 
     def __repr__(self):
-        return 'PolygonInhom: ' + str(list(zip(self.x, self.y)))
+        return "PolygonInhom: " + str(list(zip(self.x, self.y)))
 
     def isinside(self, x, y):
         rv = 0
-        if (x >= self.xmin) and (x <= self.xmax) and (y >= self.ymin) and (
-            y <= self.ymax):
+        if (
+            (x >= self.xmin)
+            and (x <= self.xmax)
+            and (y >= self.ymin)
+            and (y <= self.ymax)
+        ):
             z = complex(x, y)
             bigZ = (2.0 * z - (self.z1 + self.z2)) / (self.z2 - self.z1)
             bigZmin1 = bigZ - 1.0
@@ -52,32 +58,50 @@ class PolygonInhom(AquiferData):
                 return rv
             angles = np.log(bigZmin1 / bigZplus1).imag
             angle = np.sum(angles)
-            if angle > np.pi: rv = 1
+            if angle > np.pi:
+                rv = 1
         return rv
 
     def create_elements(self):
-        aqin = self.model.aq.find_aquifer_data(self.zcin[0].real,
-                                               self.zcin[0].imag)
+        aqin = self.model.aq.find_aquifer_data(self.zcin[0].real, self.zcin[0].imag)
         for i in range(self.Nsides):
-            aqout = self.model.aq.find_aquifer_data(self.zcout[i].real,
-                                                    self.zcout[i].imag)
-            if (aqout == self.model.aq) or (
-                aqout.inhom_number > self.inhom_number):
-                ls = IntHeadDiffLineSink(self.model, x1=self.x[i], y1=self.y[i],
-                                         x2=self.x[i + 1], y2=self.y[i + 1], \
-                                         order=self.order, ndeg=self.ndeg,
-                                         label=None, addtomodel=True, \
-                                         aq=aqin, aqin=aqin, aqout=aqout)
-                ls = IntFluxDiffLineSink(self.model, x1=self.x[i], y1=self.y[i],
-                                         x2=self.x[i + 1], y2=self.y[i + 1], \
-                                         order=self.order, ndeg=self.ndeg,
-                                         label=None, addtomodel=True, \
-                                         aq=aqout, aqin=aqin, aqout=aqout)
-        if aqin.ltype[0] == 'a':  # add constant on inside
+            aqout = self.model.aq.find_aquifer_data(
+                self.zcout[i].real, self.zcout[i].imag
+            )
+            if (aqout == self.model.aq) or (aqout.inhom_number > self.inhom_number):
+                ls = IntHeadDiffLineSink(
+                    self.model,
+                    x1=self.x[i],
+                    y1=self.y[i],
+                    x2=self.x[i + 1],
+                    y2=self.y[i + 1],
+                    order=self.order,
+                    ndeg=self.ndeg,
+                    label=None,
+                    addtomodel=True,
+                    aq=aqin,
+                    aqin=aqin,
+                    aqout=aqout,
+                )
+                ls = IntFluxDiffLineSink(
+                    self.model,
+                    x1=self.x[i],
+                    y1=self.y[i],
+                    x2=self.x[i + 1],
+                    y2=self.y[i + 1],
+                    order=self.order,
+                    ndeg=self.ndeg,
+                    label=None,
+                    addtomodel=True,
+                    aq=aqout,
+                    aqin=aqin,
+                    aqout=aqout,
+                )
+        if aqin.ltype[0] == "a":  # add constant on inside
             c = ConstantInside(self.model, self.zcin.real, self.zcin.imag)
             c.inhomelement = True
-        if aqin.ltype[0] == 'l':
-            assert self.hstar is not None, 'Error: hstar needs to be set'
+        if aqin.ltype[0] == "l":
+            assert self.hstar is not None, "Error: hstar needs to be set"
             c = ConstantStar(self.model, self.hstar, aq=aqin)
             c.inhomelement = True
 
@@ -125,22 +149,34 @@ class PolygonInhomMaq(PolygonInhom):
         integrate normal discharge
 
     """
-    
+
     tiny = 1e-8
 
-    def __init__(self, model, xy, kaq=1, z=[1, 0], c=[], npor=0.3, topboundary='conf',
-                 hstar=None, order=3, ndeg=3):
+    def __init__(
+        self,
+        model,
+        xy,
+        kaq=1,
+        z=[1, 0],
+        c=[],
+        npor=0.3,
+        topboundary="conf",
+        hstar=None,
+        order=3,
+        ndeg=3,
+    ):
         self.storeinput(inspect.currentframe())
         kaq, c, npor, ltype, = param_maq(kaq, z, c, npor, topboundary)
-        PolygonInhom.__init__(self, model, xy, kaq, c, z, npor, ltype,
-                              hstar, order, ndeg)
+        PolygonInhom.__init__(
+            self, model, xy, kaq, c, z, npor, ltype, hstar, order, ndeg
+        )
 
 
 def compute_z1z2(xy):
     # Returns z1 and z2 of polygon, in clockwise order
     x, y = list(zip(*xy))
     if x[0] == x[-1] and y[0] == y[-1]:  # In case last point is repeated
-        x = x[:-1];
+        x = x[:-1]
         y = y[:-1]
     z1 = np.array(x) + np.array(y) * 1j
     index = list(range(1, len(z1))) + [0]

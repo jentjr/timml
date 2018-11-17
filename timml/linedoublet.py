@@ -3,57 +3,87 @@ import matplotlib.pyplot as plt
 import inspect  # Used for storing the input
 from .element import Element
 from .besselaesnew import *
+
 besselaesnew.initialize()
 from .controlpoints import controlpoints
 from .equation import DisvecEquation, LeakyWallEquation
 
-__all__ = ['ImpLineDoublet', 'ImpLineDoubletString', 'LeakyLineDoublet', 
-           'LeakyLineDoubletString']
+__all__ = [
+    "ImpLineDoublet",
+    "ImpLineDoubletString",
+    "LeakyLineDoublet",
+    "LeakyLineDoubletString",
+]
+
 
 class LineDoubletHoBase(Element):
-    def __init__(self, model, x1=-1, y1=0, x2=1, y2=0, delp=0.0, res=0.0, \
-                 layers=0, order=0, name='LineDoubletHoBase', \
-                 label=None, addtomodel=True, aq=None, zcinout=None):
-        Element.__init__(self, model, nparam=1, nunknowns=0, layers=layers, \
-                         name=name, label=label)
+    def __init__(
+        self,
+        model,
+        x1=-1,
+        y1=0,
+        x2=1,
+        y2=0,
+        delp=0.0,
+        res=0.0,
+        layers=0,
+        order=0,
+        name="LineDoubletHoBase",
+        label=None,
+        addtomodel=True,
+        aq=None,
+        zcinout=None,
+    ):
+        Element.__init__(
+            self, model, nparam=1, nunknowns=0, layers=layers, name=name, label=label
+        )
         self.x1 = float(x1)
         self.y1 = float(y1)
         self.x2 = float(x2)
         self.y2 = float(y2)
-        self.delp = np.atleast_1d(delp).astype('d')
-        self.res = np.atleast_1d(res).astype('d')
+        self.delp = np.atleast_1d(delp).astype("d")
+        self.res = np.atleast_1d(res).astype("d")
         self.order = order
         self.nparam = self.nlayers * (self.order + 1)
         self.addtomodel = addtomodel
-        if addtomodel: self.model.add_element(self)
+        if addtomodel:
+            self.model.add_element(self)
         self.aq = aq
         self.zcinout = zcinout
 
     def __repr__(self):
-        return self.name + ' from ' + str((self.x1, self.y1)) + ' to ' + str(
-            (self.x2, self.y2))
+        return (
+            self.name
+            + " from "
+            + str((self.x1, self.y1))
+            + " to "
+            + str((self.x2, self.y2))
+        )
 
     def initialize(self):
         self.ncp = self.order + 1
         self.z1 = self.x1 + 1j * self.y1
         self.z2 = self.x2 + 1j * self.y2
         self.L = np.abs(self.z1 - self.z2)
-        self.thetaNormOut = np.arctan2(self.y2 - self.y1,
-                                       self.x2 - self.x1) - np.pi / 2.0
+        self.thetaNormOut = (
+            np.arctan2(self.y2 - self.y1, self.x2 - self.x1) - np.pi / 2.0
+        )
         self.cosnorm = np.cos(self.thetaNormOut) * np.ones(self.ncp)
         self.sinnorm = np.sin(self.thetaNormOut) * np.ones(self.ncp)
         #
         self.xc, self.yc = controlpoints(self.ncp, self.z1, self.z2, eps=0)
         if self.zcinout is not None:
-            self.xcin, self.ycin = controlpoints(self.ncp, self.zcinout[0],
-                                                 self.zcinout[1], eps=0)
-            self.xcout, self.ycout = controlpoints(self.ncp, self.zcinout[2],
-                                                   self.zcinout[3], eps=0)
+            self.xcin, self.ycin = controlpoints(
+                self.ncp, self.zcinout[0], self.zcinout[1], eps=0
+            )
+            self.xcout, self.ycout = controlpoints(
+                self.ncp, self.zcinout[2], self.zcinout[3], eps=0
+            )
         else:
-            self.xcin, self.ycin = controlpoints(self.ncp, self.z1, self.z2,
-                                                 eps=1e-6)
-            self.xcout, self.ycout = controlpoints(self.ncp, self.z1, self.z2,
-                                                   eps=-1e-6)
+            self.xcin, self.ycin = controlpoints(self.ncp, self.z1, self.z2, eps=1e-6)
+            self.xcout, self.ycout = controlpoints(
+                self.ncp, self.z1, self.z2, eps=-1e-6
+            )
         if self.aq is None:
             self.aq = self.model.aq.find_aquifer_data(self.xc, self.yc)
         self.resfac = self.aq.T[self.layers] / self.res
@@ -64,7 +94,7 @@ class LineDoubletHoBase(Element):
         self.parameters[:, 0] = self.delp
 
     def potinf(self, x, y, aq=None):
-        '''Can be called with only one x,y value
+        """Can be called with only one x,y value
         Returns array(nparam, self.aq.naq) with order
         order 0, layer[0]
         order 0, layer[1]
@@ -72,20 +102,23 @@ class LineDoubletHoBase(Element):
         order 1, layer[0]
         order 1, layer[1]
         etc
-        '''
-        if aq is None: aq = self.model.aq.find_aquifer_data(x, y)
+        """
+        if aq is None:
+            aq = self.model.aq.find_aquifer_data(x, y)
         rv = np.zeros((self.nparam, aq.naq))
         if aq == self.aq:
-            potrv = rv.reshape((self.order + 1, self.nlayers,
-                                aq.naq))  # clever way of using a reshaped rv here
+            potrv = rv.reshape(
+                (self.order + 1, self.nlayers, aq.naq)
+            )  # clever way of using a reshaped rv here
             pot = np.zeros((self.order + 1, aq.naq))
-            pot[:, :] = besselaesnew.potbesldv(x, y, self.z1, self.z2, aq.lab,
-                                               self.order, aq.ilap)
+            pot[:, :] = besselaesnew.potbesldv(
+                x, y, self.z1, self.z2, aq.lab, self.order, aq.ilap
+            )
             potrv[:] = self.aq.coef[self.layers] * pot[:, np.newaxis, :]
         return rv
 
     def disvecinf(self, x, y, aq=None):
-        '''Can be called with only one x,y value
+        """Can be called with only one x,y value
         Returns array(nparam, self.aq.naq) with order
         order 0, layer[0]
         order 0, layer[1]
@@ -93,23 +126,29 @@ class LineDoubletHoBase(Element):
         order 1, layer[0]
         order 1, layer[1]
         etc
-        '''
-        if aq is None: aq = self.model.aq.find_aquifer_data(x, y)
+        """
+        if aq is None:
+            aq = self.model.aq.find_aquifer_data(x, y)
         rv = np.zeros((2, self.nparam, aq.naq))
         if aq == self.aq:
-            qxqyrv = rv.reshape((2, self.order + 1, self.nlayers,
-                                 aq.naq))  # clever way of using a reshaped rv here
+            qxqyrv = rv.reshape(
+                (2, self.order + 1, self.nlayers, aq.naq)
+            )  # clever way of using a reshaped rv here
             qxqy = np.zeros((2 * (self.order + 1), aq.naq))
-            qxqy[:, :] = besselaesnew.disbesldv(x, y, self.z1, self.z2, aq.lab,
-                                                self.order, aq.ilap)
-            qxqyrv[0, :] = self.aq.coef[self.layers] * qxqy[:self.order + 1,
-                                                       np.newaxis, :]
-            qxqyrv[1, :] = self.aq.coef[self.layers] * qxqy[self.order + 1:,
-                                                       np.newaxis, :]
+            qxqy[:, :] = besselaesnew.disbesldv(
+                x, y, self.z1, self.z2, aq.lab, self.order, aq.ilap
+            )
+            qxqyrv[0, :] = (
+                self.aq.coef[self.layers] * qxqy[: self.order + 1, np.newaxis, :]
+            )
+            qxqyrv[1, :] = (
+                self.aq.coef[self.layers] * qxqy[self.order + 1 :, np.newaxis, :]
+            )
         return rv
 
     def plot(self):
-        plt.plot([self.x1, self.x2], [self.y1, self.y2], 'k')
+        plt.plot([self.x1, self.x2], [self.y1, self.y2], "k")
+
 
 class ImpLineDoublet(LineDoubletHoBase, DisvecEquation):
     """
@@ -145,14 +184,35 @@ class ImpLineDoublet(LineDoubletHoBase, DisvecEquation):
     :class:`.ImpLineDoubletString`
     
     """
-    
-    def __init__(self, model, x1=-1, y1=0, x2=1, y2=0, \
-                 order=0, layers=0, label=None, addtomodel=True):
+
+    def __init__(
+        self,
+        model,
+        x1=-1,
+        y1=0,
+        x2=1,
+        y2=0,
+        order=0,
+        layers=0,
+        label=None,
+        addtomodel=True,
+    ):
         self.storeinput(inspect.currentframe())
-        LineDoubletHoBase.__init__(self, model, x1, y1, x2, y2, delp=0, \
-                                res = np.inf, layers=layers, order=order,
-                                name='ImpLineDoublet', label=label, \
-                                addtomodel=addtomodel)
+        LineDoubletHoBase.__init__(
+            self,
+            model,
+            x1,
+            y1,
+            x2,
+            y2,
+            delp=0,
+            res=np.inf,
+            layers=layers,
+            order=order,
+            name="ImpLineDoublet",
+            label=label,
+            addtomodel=addtomodel,
+        )
         self.nunknowns = self.nparam
 
     def initialize(self):
@@ -160,7 +220,8 @@ class ImpLineDoublet(LineDoubletHoBase, DisvecEquation):
 
     def setparams(self, sol):
         self.parameters[:, 0] = sol
-        
+
+
 class LeakyLineDoublet(LineDoubletHoBase, LeakyWallEquation):
     """
     Create a segment of a leaky wall, which is
@@ -199,14 +260,36 @@ class LeakyLineDoublet(LineDoubletHoBase, LeakyWallEquation):
     :class:`.LeakyLineDoubletString`
     
     """
-    
-    def __init__(self, model, x1=-1, y1=0, x2=1, y2=0, res=0,\
-                 order=0, layers=0, label=None, addtomodel=True):
+
+    def __init__(
+        self,
+        model,
+        x1=-1,
+        y1=0,
+        x2=1,
+        y2=0,
+        res=0,
+        order=0,
+        layers=0,
+        label=None,
+        addtomodel=True,
+    ):
         self.storeinput(inspect.currentframe())
-        LineDoubletHoBase.__init__(self, model, x1, y1, x2, y2, delp=0, \
-                                res=res, layers=layers, order=order,
-                                name='ImpLineDoublet', label=label, \
-                                addtomodel=addtomodel)
+        LineDoubletHoBase.__init__(
+            self,
+            model,
+            x1,
+            y1,
+            x2,
+            y2,
+            delp=0,
+            res=res,
+            layers=layers,
+            order=order,
+            name="ImpLineDoublet",
+            label=label,
+            addtomodel=addtomodel,
+        )
         self.nunknowns = self.nparam
 
     def initialize(self):
@@ -217,12 +300,24 @@ class LeakyLineDoublet(LineDoubletHoBase, LeakyWallEquation):
 
 
 class LineDoubletStringBase(Element):
-    def __init__(self, model, xy, closed=False, layers=0, order=0, res=0,
-                 name='LineDoubletStringBase', label=None, aq=None):
-        Element.__init__(self, model, nparam=1, nunknowns=0, layers=layers, \
-                         name=name, label=label)
-        self.xy = np.atleast_2d(xy).astype('d')
-        if closed: self.xy = np.vstack((self.xy, self.xy[0]))
+    def __init__(
+        self,
+        model,
+        xy,
+        closed=False,
+        layers=0,
+        order=0,
+        res=0,
+        name="LineDoubletStringBase",
+        label=None,
+        aq=None,
+    ):
+        Element.__init__(
+            self, model, nparam=1, nunknowns=0, layers=layers, name=name, label=label
+        )
+        self.xy = np.atleast_2d(xy).astype("d")
+        if closed:
+            self.xy = np.vstack((self.xy, self.xy[0]))
         self.order = order
         self.aq = aq
         self.ldlist = []
@@ -230,18 +325,31 @@ class LineDoubletStringBase(Element):
         self.Nld = len(self.x) - 1
         for i in range(self.Nld):
             self.ldlist.append(
-                LineDoubletHoBase(model, x1=self.x[i], y1=self.y[i], x2=self.x[i + 1],
-                                  y2=self.y[i + 1], delp=0.0, res=res, layers=layers,
-                                  order=order, label=label, addtomodel=False, aq=aq))
+                LineDoubletHoBase(
+                    model,
+                    x1=self.x[i],
+                    y1=self.y[i],
+                    x2=self.x[i + 1],
+                    y2=self.y[i + 1],
+                    delp=0.0,
+                    res=res,
+                    layers=layers,
+                    order=order,
+                    label=label,
+                    addtomodel=False,
+                    aq=aq,
+                )
+            )
 
     def __repr__(self):
-        return self.name + ' with nodes ' + str(self.xy)
+        return self.name + " with nodes " + str(self.xy)
 
     def initialize(self):
         for ld in self.ldlist:
             ld.initialize()
-        self.ncp = self.Nld * self.ldlist[
-            0].ncp  # Same order for all elements in string
+        self.ncp = (
+            self.Nld * self.ldlist[0].ncp
+        )  # Same order for all elements in string
         self.nparam = self.Nld * self.ldlist[0].nparam
         self.nunknowns = self.nparam
         self.xld = np.empty((self.Nld, 2))
@@ -250,8 +358,9 @@ class LineDoubletStringBase(Element):
             self.xld[i, :] = [ld.x1, ld.x2]
             self.yld[i, :] = [ld.y1, ld.y2]
         if self.aq is None:
-            self.aq = self.model.aq.find_aquifer_data(self.ldlist[0].xc,
-                                                      self.ldlist[0].yc)
+            self.aq = self.model.aq.find_aquifer_data(
+                self.ldlist[0].xc, self.ldlist[0].yc
+            )
         self.parameters = np.zeros((self.nparam, 1))
         ## As parameters are only stored for the element not the list, we need to combine the following
         self.xc = np.array([ld.xc for ld in self.ldlist]).flatten()
@@ -263,12 +372,12 @@ class LineDoubletStringBase(Element):
         self.cosnorm = np.array([ld.cosnorm for ld in self.ldlist]).flatten()
         self.sinnorm = np.array([ld.sinnorm for ld in self.ldlist]).flatten()
         self.aqin = self.model.aq.find_aquifer_data(self.xcin[0], self.ycin[0])
-        self.aqout = self.model.aq.find_aquifer_data(self.xcout[0],
-                                                     self.ycout[0])
+        self.aqout = self.model.aq.find_aquifer_data(self.xcout[0], self.ycout[0])
         self.resfac = self.ldlist[0].resfac
 
     def potinf(self, x, y, aq=None):
-        if aq is None: aq = self.model.aq.find_aquifer_data(x, y)
+        if aq is None:
+            aq = self.model.aq.find_aquifer_data(x, y)
         rv = np.zeros((self.Nld, self.ldlist[0].nparam, aq.naq))
         for i in range(self.Nld):
             rv[i] = self.ldlist[i].potinf(x, y, aq)
@@ -276,15 +385,16 @@ class LineDoubletStringBase(Element):
         return rv
 
     def disvecinf(self, x, y, aq=None):
-        if aq is None: aq = self.model.aq.find_aquifer_data(x, y)
+        if aq is None:
+            aq = self.model.aq.find_aquifer_data(x, y)
         rv = np.zeros((2, self.Nld, self.ldlist[0].nparam, aq.naq))
         for i in range(self.Nld):
             rv[:, i] = self.ldlist[i].disvecinf(x, y, aq)
         rv.shape = (2, self.nparam, aq.naq)
         return rv
-    
+
     def plot(self):
-        plt.plot(self.x, self.y, 'k')
+        plt.plot(self.x, self.y, "k")
 
 
 class ImpLineDoubletString(LineDoubletStringBase, DisvecEquation):
@@ -316,15 +426,21 @@ class ImpLineDoubletString(LineDoubletStringBase, DisvecEquation):
     :class:`.ImpLineDoublet`
     
     """
-    
-    
-    def __init__(self, model, xy=[(-1, 0), (1, 0)], \
-                 layers=0, order=0, label=None):
+
+    def __init__(self, model, xy=[(-1, 0), (1, 0)], layers=0, order=0, label=None):
         self.storeinput(inspect.currentframe())
-        LineDoubletStringBase.__init__(self, model, xy, closed=False,
-                                    res=np.inf, layers=layers, order=order, \
-                                    name='ImpLineDoubletString', label=label,
-                                    aq=None)
+        LineDoubletStringBase.__init__(
+            self,
+            model,
+            xy,
+            closed=False,
+            res=np.inf,
+            layers=layers,
+            order=order,
+            name="ImpLineDoubletString",
+            label=label,
+            aq=None,
+        )
         self.model.add_element(self)
 
     def initialize(self):
@@ -333,7 +449,8 @@ class ImpLineDoubletString(LineDoubletStringBase, DisvecEquation):
 
     def setparams(self, sol):
         self.parameters[:, 0] = sol
-        
+
+
 class LeakyLineDoubletString(LineDoubletStringBase, LeakyWallEquation):
     """
     Create a string of leaky wall segements consisting
@@ -365,14 +482,23 @@ class LeakyLineDoubletString(LineDoubletStringBase, LeakyWallEquation):
     :class:`.ImpLineDoublet`
     
     """
-    
-    def __init__(self, model, xy=[(-1, 0), (1, 0)], res=np.inf,\
-                 layers=0, order=0, label=None):
+
+    def __init__(
+        self, model, xy=[(-1, 0), (1, 0)], res=np.inf, layers=0, order=0, label=None
+    ):
         self.storeinput(inspect.currentframe())
-        LineDoubletStringBase.__init__(self, model, xy, closed=False,
-                                    layers=layers, order=order, res=res,\
-                                    name='ImpLineDoubletString', label=label,
-                                    aq=None)
+        LineDoubletStringBase.__init__(
+            self,
+            model,
+            xy,
+            closed=False,
+            layers=layers,
+            order=order,
+            res=res,
+            name="ImpLineDoubletString",
+            label=label,
+            aq=None,
+        )
         self.model.add_element(self)
 
     def initialize(self):
