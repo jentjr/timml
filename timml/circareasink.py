@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import inspect  # Used for storing the input
 from .element import Element
 from scipy.special import k0, k1, i0, i1
@@ -7,6 +8,29 @@ __all__ = ["CircAreaSink"]
 
 
 class CircAreaSink(Element):
+    """Uniform infiltration over a circle of radius R centered at xc, yc
+    
+    Parameters
+    ----------
+    model: Model object
+        Model to which the element is added
+    xc: numeric
+        x-coordinate for center of circle [L]
+    yc: numeric
+        y-coordinate for center of circle [L]
+    R:  numeric
+        Radius of circle [L]
+    N:  numeric
+        Infiltration rate [L/T]
+    layer: integer, list, or array
+        layer to which the element is added
+    name: str, or None
+        name of the element
+    label: str, or None (default: None)
+        label of the element
+    
+    """
+
     def __init__(
         self, model, xc=0, yc=0, R=1, N=0.001, layer=0, name="CircAreasink", label=None
     ):
@@ -225,3 +249,7 @@ class CircAreaSink(Element):
             zn = xyzt1[2] + u * (xyzt2[2] - xyzt1[2])
             xyztnew = xyzt1 + u * (xyzt2 - xyzt1)
         return changed, terminate, xyztnew
+
+    def plot(self):
+        circ = plt.Circle((self.xc, self.yc), self.R, color="k", fill=False)
+        plt.gca().add_artist(circ)

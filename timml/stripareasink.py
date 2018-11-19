@@ -6,6 +6,27 @@ __all__ = ["StripAreaSink"]
 
 
 class StripAreaSink(Element):
+    """Uniform infiltration over a strip of uniform width
+    
+    Parameters
+    ----------
+    model: Model object
+        Model to which the element is added
+    xleft: numeric
+        x-coordinate for left side of strip [L]
+    xright: numeric
+        x-coordinate for right side of strip [L]
+    N:  numeric
+        Infiltration rate [L/T]
+    layer: integer, list, or array
+        layer to which the element is added
+    name: string, or None
+        name of the element
+    label: string, or None (default: None)
+        label of the element
+    
+    """
+
     def __init__(
         self,
         model,

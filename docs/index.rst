@@ -8,7 +8,7 @@ TimML
 =====
 TimML is a computer program for the modeling of steady-state multi-layer flow with analytic elements
 TimML may be applied to an arbitrary number of layers and arbitrary sequence of aquifers and leaky layers.
-The Dupuit approximation is applied to aquifer layers, while flow in leaky layers is approximated as vertical.
+The Dupuit-Forchheimer approximation is applied to aquifer layers, while flow in leaky layers is approximated as vertical.
 The head, flow, and leakage between aquifer layers may be computed analytically at any point in the aquifer system.
 The design of TimML is object-oriented and has been kept simple and flexible.
 New analytic elements may be added to the code without making any changes in the existing part of the code.
@@ -36,7 +36,25 @@ To uninstall TimML type:
 .. code-block:: python
 
   pip uninstall timml
-  
+ 
+If using Anaconda Python, TimML can be installed from conda-forge.
+
+.. code-block:: python
+
+  conda install timml -c conda-forge
+
+To update:
+
+.. code-block:: python
+
+  conda update timml
+
+To uninstall:
+
+.. code-block:: python
+
+  conda uninstall timml
+
 Main Approximations
 -------------------
 

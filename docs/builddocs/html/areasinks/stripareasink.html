@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>String of impermeable wall segments &#8212; TimML 5.0.0 documentation</title>
+    <title>Strip Area-Sink &#8212; TimML 5.0.0 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -16,8 +16,8 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Leaky wall" href="leakylinedoublet.html" />
-    <link rel="prev" title="Impermeable wall" href="implinedoublet.html" />
+    <link rel="next" title="Utilities" href="../utils/utils.html" />
+    <link rel="prev" title="Circular Area-Sink" href="circareasink.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -34,36 +34,34 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="string-of-impermeable-wall-segments">
-<h1>String of impermeable wall segments<a class="headerlink" href="#string-of-impermeable-wall-segments" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="strip-area-sink">
+<h1>Strip Area-Sink<a class="headerlink" href="#strip-area-sink" title="Permalink to this headline">¶</a></h1>
+<p>The comprehensive potential for infiltration, <span class="math notranslate nohighlight">\(N\)</span>, over a strip of width <span class="math notranslate nohighlight">\(2b\)</span> is:</p>
+<blockquote>
+<div><div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}\Theta=-\frac{1}{2}N(x^2 - b^2) + \Theta_0,\quad\quad -b \leq x \leq b\\\Theta=-Nb(x - b) + \Theta_0,\quad\quad b \leq x &lt; \infty\\\Theta=Nb(x + b) + \Theta_0,\quad\quad -\infty &lt; x \leq -b\end{aligned}\end{align} \]</div>
+</div></blockquote>
 <dl class="class">
-<dt id="timml.linedoublet.ImpLineDoubletString">
-<em class="property">class </em><code class="descclassname">timml.linedoublet.</code><code class="descname">ImpLineDoubletString</code><span class="sig-paren">(</span><em>model, xy=[(-1, 0), (1, 0)], layers=0, order=0, label=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/timml/linedoublet.html#ImpLineDoubletString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#timml.linedoublet.ImpLineDoubletString" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a string of impermeable wall segements consisting
-of line-doublets</p>
+<dt id="timml.stripareasink.StripAreaSink">
+<em class="property">class </em><code class="descclassname">timml.stripareasink.</code><code class="descname">StripAreaSink</code><span class="sig-paren">(</span><em>model</em>, <em>xleft=-1</em>, <em>xright=1</em>, <em>N=0.001</em>, <em>layer=0</em>, <em>name='StripAreaSink'</em>, <em>label=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/timml/stripareasink.html#StripAreaSink"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#timml.stripareasink.StripAreaSink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uniform infiltration over a strip of uniform width</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>model</strong> (<em>Model object</em>) – Model to which the element is added</li>
-<li><strong>xy</strong> (<em>array</em><em> or </em><em>list</em>) – list or array of (x,y) pairs of coordinates of end-points of
-the segements in the string</li>
-<li><strong>layers</strong> (<em>scalar</em><em>, </em><em>list</em><em> or </em><em>array</em>) – layer(s) in which element is placed
-if scalar: element is placed in this layer
-if list or array: element is placed in all these layers</li>
-<li><strong>order</strong> (<em>int</em><em> (</em><em>default is 0</em><em>)</em>) – polynomial order of potential jump along line-doublet
-(head jump if transmissivity is equal on each side of wall)</li>
-<li><strong>label</strong> (<em>str</em><em> or </em><em>None</em>) – label of element</li>
+<li><strong>xleft</strong> (<em>numeric</em>) – x-coordinate for left side of strip [L]</li>
+<li><strong>xright</strong> (<em>numeric</em>) – x-coordinate for right side of strip [L]</li>
+<li><strong>N</strong> (<em>numeric</em>) – Infiltration rate [L/T]</li>
+<li><strong>layer</strong> (<em>integer</em><em>, </em><em>list</em><em>, or </em><em>array</em>) – layer to which the element is added</li>
+<li><strong>name</strong> (<em>string</em><em>, or </em><em>None</em>) – name of the element</li>
+<li><strong>label</strong> (<em>string</em><em>, or </em><em>None</em><em> (</em><em>default: None</em><em>)</em>) – label of the element</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<div class="admonition seealso">
-<p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="implinedoublet.html#timml.linedoublet.ImpLineDoublet" title="timml.linedoublet.ImpLineDoublet"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImpLineDoublet</span></code></a></p>
-</div>
 </dd></dl>
 
 </div>
@@ -100,16 +98,14 @@ if list or array: element is placed in all these layers</li>
 <li class="toctree-l1 current"><a class="reference internal" href="../aems.html">Elements</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../wells/wellindex.html">Wells</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../linesinks/linesinkindex.html">Line-sinks</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="linedoubletindex.html">Line-doublets</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="implinedoublet.html">ImpLineDoublet</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">ImpLineDoubletString</a></li>
-<li class="toctree-l3"><a class="reference internal" href="leakylinedoublet.html">LeakyLineDoublet</a></li>
-<li class="toctree-l3"><a class="reference internal" href="leakylinedoubletstring.html">LeakyLineDoubletString</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="../linedoublets/linedoubletindex.html">Line-doublets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../constant.html">Constant</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../uflow.html">Uniform flow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../areasinks/areasinkindex.html">Area-sinks</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="areasinkindex.html">Area-sinks</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="circareasink.html">CircAreaSink</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">StripAreaSink</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../utils/utils.html">Utilities</a></li>
@@ -121,9 +117,9 @@ if list or array: element is placed in all these layers</li>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="../aems.html">Elements</a><ul>
-  <li><a href="linedoubletindex.html">Line-doublets</a><ul>
-      <li>Previous: <a href="implinedoublet.html" title="previous chapter">Impermeable wall</a></li>
-      <li>Next: <a href="leakylinedoublet.html" title="next chapter">Leaky wall</a></li>
+  <li><a href="areasinkindex.html">Area-sinks</a><ul>
+      <li>Previous: <a href="circareasink.html" title="previous chapter">Circular Area-Sink</a></li>
+      <li>Next: <a href="../utils/utils.html" title="next chapter">Utilities</a></li>
   </ul></li>
   </ul></li>
   </ul></li>
@@ -153,7 +149,7 @@ if list or array: element is placed in all these layers</li>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
-      <a href="../_sources/linedoublets/implinedoubletstring.rst.txt"
+      <a href="../_sources/areasinks/stripareasink.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
