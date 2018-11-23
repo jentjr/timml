@@ -140,8 +140,7 @@ def compute_z1z2(xy):
     """Returns z1 and z2 of polygon, in clockwise order"""
     
     # If the vertices were entered clockwise, reverse the order
-    sign = _vertice_order(xy)
-    if sign < 0:
+    if _ispolycw(xy):
         xy = xy[::-1]
     
     x, y = list(zip(*xy))
@@ -162,12 +161,32 @@ def compute_z1z2(xy):
         z2 = z2[::-1]
     return z1, z2
 
-def _vertice_order(xy):
-    """check the order in which the vertices were entered"""
+def _poly_signed_area(xy):
+    """Calculate the signed area of a polygon.
+    
+    A negative signed area means the points are counter-clockwise;
+    positive is clockwise. 
+
+    """
+    
     sign = 0
     n = len(xy)
+    if n < 3:
+        raise Exception("Must enter 3, or more points")
+
     for i in range(n):
         j = (i + 1) % n
         sign += (xy[i][0]*xy[j][1] - xy[j][0]*xy[i][1])
 
     return sign
+
+def _ispolycw(xy):
+    """return true if clockwise"""
+
+    sign = _poly_signed_area(xy)
+    
+    if sign < 0:
+        return True
+    else:
+        return False
+
