@@ -137,7 +137,13 @@ class PolygonInhomMaq(PolygonInhom):
 
 
 def compute_z1z2(xy):
-    # Returns z1 and z2 of polygon, in clockwise order
+    """Returns z1 and z2 of polygon, in clockwise order"""
+    
+    # If the vertices were entered clockwise, reverse the order
+    sign = _vertice_order(xy)
+    if sign < 0:
+        xy = xy[::-1]
+    
     x, y = list(zip(*xy))
     if x[0] == x[-1] and y[0] == y[-1]:  # In case last point is repeated
         x = x[:-1];
@@ -155,3 +161,13 @@ def compute_z1z2(xy):
         z1 = z1[::-1]
         z2 = z2[::-1]
     return z1, z2
+
+def _vertice_order(xy):
+    """check the order in which the vertices were entered"""
+    sign = 0
+    n = len(xy)
+    for i in range(n):
+        j = (i + 1) % n
+        sign += (xy[i][0]*xy[j][1] - xy[j][0]*xy[i][1])
+
+    return sign
