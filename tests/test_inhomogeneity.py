@@ -1,25 +1,22 @@
 from timml import *
+from numpy.testing import assert_allclose
 
-def test_counterclockwise_xy():
+def test_xy_vertices():
+    # model with vertices entered counter-clockwise
     ccxy = [(-1, -1), (1, -1), (1, 1), (-1, 1)]
-    ml =  ModelMaq(z=[1, 0, -1], c=[100], topboundary="semi", hstar=1.0)
-    inhom = PolygonInhomMaq(ml, ccxy)
-    w = Well(ml)
-    ml.solve()
+    ml1 =  ModelMaq(z=[1, 0, -1], c=[100], topboundary="semi", hstar=1.0)
+    inhom = PolygonInhomMaq(ml1, ccxy)
+    w = Well(ml1)
+    ml1.solve()
+    h1 = ml1.headgrid2(-2, 2, 10, -2, 2, 10)
     
-    ml = ModelMaq(kaq=[1], z=[10, 0])
-    uf = Uflow(ml, slope=0.01, angle=0)
-    ld = PolygonInhomMaq(ml, xy=ccxy, c=1, order=3)
-    ml.solve()
-
-def test_clockwise_xy():
+    # model with vertices entered clockwise
     cwxy = [(-1, -1), (-1, 1), (1, 1), (1, -1)]
-    ml =  ModelMaq(z=[1, 0, -1], c=[100], topboundary="semi", hstar=1.0)
-    inhom = PolygonInhomMaq(ml, xy=cwxy)
-    w = Well(ml)
-    ml.solve()
-    
-    ml = ModelMaq(kaq=[1], z=[10, 0])
-    uf = Uflow(ml, slope=0.01, angle=0)
-    ld = PolygonInhomMaq(ml, xy=cwxy, c=1, order=3)
-    ml.solve()
+    ml2 =  ModelMaq(z=[1, 0, -1], c=[100], topboundary="semi", hstar=1.0)
+    inhom = PolygonInhomMaq(ml2, xy=cwxy)
+    w = Well(ml2)
+    ml2.solve()
+    h2 = ml2.headgrid2(-2, 2, 10, -2, 2, 10)
+
+    assert_allclose(h1, h2)
+
