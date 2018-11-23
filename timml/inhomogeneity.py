@@ -173,21 +173,50 @@ class PolygonInhomMaq(PolygonInhom):
 
 
 def compute_z1z2(xy):
-    # Returns z1 and z2 of polygon, in clockwise order
+    """Returns z1 and z2 of polygon, in clockwise order"""
+    
+    # If the vertices were entered clockwise, reverse the order
+    if _ispolycw(xy):
+        xy = xy[::-1]
+    
     x, y = list(zip(*xy))
     if x[0] == x[-1] and y[0] == y[-1]:  # In case last point is repeated
         x = x[:-1]
         y = y[:-1]
+    
     z1 = np.array(x) + np.array(y) * 1j
     index = list(range(1, len(z1))) + [0]
     z2 = z1[index]
-    Z = 1e-6j
-    z = Z * (z2[0] - z1[0]) / 2.0 + 0.5 * (z1[0] + z2[0])
-    bigZ = (2.0 * z - (z1 + z2)) / (z2 - z1)
-    bigZmin1 = bigZ - 1.0
-    bigZplus1 = bigZ + 1.0
-    angle = np.sum(np.log(bigZmin1 / bigZplus1).imag)
-    if angle < np.pi:  # reverse order
-        z1 = z1[::-1]
-        z2 = z2[::-1]
+
     return z1, z2
+
+
+def _poly_signed_area(xy):
+    """Calculate the signed area of a polygon.
+    
+    A negative signed area means the points are counter-clockwise;
+    positive is clockwise. 
+
+    """
+    
+    sign = 0
+    n = len(xy)
+    if n < 3:
+        raise Exception("Must enter 3, or more points")
+
+    for i in range(n):
+        j = (i + 1) % n
+        sign += (xy[i][0]*xy[j][1] - xy[j][0]*xy[i][1])
+
+    return sign
+
+def _ispolycw(xy):
+    """return true if clockwise"""
+
+    sign = _poly_signed_area(xy)
+    
+    if sign < 0:
+        return True
+    else:
+        return False
+
