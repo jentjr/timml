@@ -44,7 +44,15 @@ class CircAreaSink(Element):
         self.model.add_element(self)
 
     def __repr__(self):
-        return self.name + " at " + str((self.xc, self.yc))
+        return (
+            self.name
+            + " at "
+            + str((self.xc, self.yc))
+            + " with radius "
+            + self.R
+            + " and infiltration rate "
+            + self.N
+        )
 
     def initialize(self):
         self.Rsq = self.R ** 2
