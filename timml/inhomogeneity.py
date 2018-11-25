@@ -174,16 +174,16 @@ class PolygonInhomMaq(PolygonInhom):
 
 def compute_z1z2(xy):
     """Returns z1 and z2 of polygon, in clockwise order"""
-    
+
     # If the vertices were entered clockwise, reverse the order
     if _ispolycw(xy):
         xy = xy[::-1]
-    
+
     x, y = list(zip(*xy))
     if x[0] == x[-1] and y[0] == y[-1]:  # In case last point is repeated
         x = x[:-1]
         y = y[:-1]
-    
+
     z1 = np.array(x) + np.array(y) * 1j
     index = list(range(1, len(z1))) + [0]
     z2 = z1[index]
@@ -198,7 +198,7 @@ def _poly_signed_area(xy):
     positive is clockwise. 
 
     """
-    
+
     sign = 0
     n = len(xy)
     if n < 3:
@@ -206,17 +206,17 @@ def _poly_signed_area(xy):
 
     for i in range(n):
         j = (i + 1) % n
-        sign += (xy[i][0]*xy[j][1] - xy[j][0]*xy[i][1])
+        sign += xy[i][0] * xy[j][1] - xy[j][0] * xy[i][1]
 
     return sign
+
 
 def _ispolycw(xy):
     """return true if clockwise"""
 
     sign = _poly_signed_area(xy)
-    
+
     if sign < 0:
         return True
     else:
         return False
-

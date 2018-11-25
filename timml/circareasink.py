@@ -102,8 +102,8 @@ class CircAreaSink(Element):
         if aq is None:
             aq = self.model.aq.find_aquifer_data(x, y)
         rv = np.zeros((2, self.nparam, aq.naq))
+        r = np.sqrt((x - self.xc) ** 2 + (y - self.yc) ** 2)
         if aq == self.aq:
-            r = np.sqrt((x - self.xc) ** 2 + (y - self.yc) ** 2)
             if r <= self.R:
                 if r > 1e-12:  # otherwise zero
                     if aq.ilap:
@@ -128,7 +128,6 @@ class CircAreaSink(Element):
                     rv[0, 0] = self.B * I1RK1r * (x - self.xc) / (r * self.lab)
                     rv[1, 0] = self.B * I1RK1r * (y - self.yc) / (r * self.lab)
         else:
-            r = np.sqrt((x - self.xc) ** 2 + (y - self.yc) ** 2)
             if r <= self.R:
                 raise "CircAreaSink should add constant inside inhomogeneity"
         return rv

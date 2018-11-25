@@ -59,6 +59,14 @@ To uninstall
 
     conda uninstall timml
 
+## Installing from Source
+
+Installation from source requires a fortran compiler and f2py from numpy. 
+
+    python setup.py install
+
+    python setup.py build_ext --inplace --compiler=mingw32 --fcompiler=gfortran
+
 ## Documentation
 
 * The manual is available from the docs directory or can be viewed [here](http://mbakker7.github.io/timml/docs/builddocs/html/index.html).

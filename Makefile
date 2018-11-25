@@ -2,6 +2,7 @@
 
 black:
 	black timml
+	black tests
 
 docs:
 	cd docs && make html
