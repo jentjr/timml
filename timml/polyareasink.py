@@ -3,7 +3,6 @@
 """
 
 import numpy as np
-from scipy import linalg
 from .element import Element
 from .linesink import LineSinkHoBase
 from .linedoublet import LinDoubletHoBase
