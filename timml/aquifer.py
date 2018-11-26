@@ -1,4 +1,5 @@
 import numpy as np
+from scipy import linalg
 import inspect  # Used for storing the input
 from .aquifer_parameters import param_maq
 from .constant import ConstantStar
@@ -59,7 +60,7 @@ class AquiferData:
         dp1 = -1.0 / (self.c[1:] * self.T[1:])
         dm1 = -1.0 / (self.c[1:] * self.T[:-1])
         A = np.diag(dm1, -1) + np.diag(d0, 0) + np.diag(dp1, 1)
-        w, v = np.linalg.eig(A)
+        w, v = linalg.eig(A)
         # sort lab in decending order, hence w in ascending order
         index = np.argsort(abs(w))
         w = w[index]
@@ -74,7 +75,7 @@ class AquiferData:
         else:
             self.lab = 1.0 / np.sqrt(w)
         self.eigvec = v
-        self.coef = np.linalg.solve(v, np.diag(np.ones(self.naq))).T
+        self.coef = linalg.solve(v, np.diag(np.ones(self.naq))).T
 
     def add_element(self, e):
         self.elementlist.append(e)
