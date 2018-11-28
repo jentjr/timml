@@ -1,5 +1,6 @@
 import numpy as np
 import inspect  # Used for storing the input
+import matplotlib.pyplot as plt
 from .aquifer import AquiferData
 from .aquifer_parameters import param_maq
 from .constant import ConstantInside, ConstantStar
@@ -104,6 +105,13 @@ class PolygonInhom(AquiferData):
             assert self.hstar is not None, "Error: hstar needs to be set"
             c = ConstantStar(self.model, self.hstar, aq=aqin)
             c.inhomelement = True
+            
+    def plot(self):
+        fig = plt.gcf()
+        ax = plt.gca()
+        poly = Polygon(self.xy, closed=True, fill=False)
+        ax.add_patch(poly)
+        plt.plot()
 
 
 class PolygonInhomMaq(PolygonInhom):

@@ -33,6 +33,7 @@ from .linedoublet import (
     LeakyLineDoubletString,
 )
 from .circareasink import CircAreaSink
+from .polyareasink import PolyAreaSink
 from .inhomogeneity import PolygonInhomMaq
 from .inhomogeneity1d import StripInhomMaq, StripInhom3D
 from .uflow import Uflow

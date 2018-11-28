@@ -49,9 +49,9 @@ class CircAreaSink(Element):
             + " at "
             + str((self.xc, self.yc))
             + " with radius "
-            + self.R
+            + str(self.R)
             + " and infiltration rate "
-            + self.N
+            + str(self.N)
         )
 
     def initialize(self):
@@ -259,4 +259,6 @@ class CircAreaSink(Element):
 
     def plot(self):
         circ = plt.Circle((self.xc, self.yc), self.R, color="k", fill=False)
+        # plt.gca only plots the circle if it fits within current axes
+        # this keeps very large circles from being plotted
         plt.gca().add_artist(circ)
