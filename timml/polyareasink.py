@@ -6,11 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from .element import Element
-from .linesink import LineSinkHoBase
-from .linedoublet import LineDoubletHoBase
-from .besselaesnew import *
 
-besselaesnew.initialize()
+__all__ = ["PolyAreaSink"]
 
 
 class PolyAreaSink(Element):
