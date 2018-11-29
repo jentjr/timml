@@ -29,7 +29,7 @@ class PolyAreaSink(Element):
         label of the element
     
     """
-    
+
     tiny = 1e-6
 
     def __init__(self, model, xy, N, layer=0, name="PolyAreaSink", label=None):
@@ -62,7 +62,7 @@ class PolyAreaSink(Element):
         self.z2[:-1] = self.z1[1:]
         self.z2[-1] = self.z1[0]
         self.lengths = abs(self.z2 - self.z1)
-        
+
         # find center of area-sink
         self.xc = np.average(self.xp[:-1])
         self.yc = np.average(self.yp[:-1])
@@ -79,59 +79,73 @@ class PolyAreaSink(Element):
             self.xpmax[i] = max(self.xp[i], self.xp[i + 1])
             self.ypmin[i] = min(self.yp[i], self.yp[i + 1])
             self.ypmax[i] = max(self.yp[i], self.yp[i + 1])
-        
-        self.area = polygon_area(self.xy)    
-        
+
+        self.area = polygon_area(self.xy)
+
         self.aq = self.model.aq.find_aquifer_data(self.xc, self.yc)
         self.aq.add_element(self)
-        
+        if self.aq.ilap:
+            self.lab = self.aq.lab[1:]
+        else:
+            self.lab = self.aq.lab
+
     def zetaj(self, x, y):
-        z = x + 1j*y
-        zetaj = (2*z - self.z1 - self.z2)/(self.z2 - self.z1)
+        z = x + 1j * y
+        zetaj = (2 * z - self.z1 - self.z2) / (self.z2 - self.z1)
         return zetaj
 
     def zetajplus(self, x, y):
-        z = x + 1j*y
-        zetaplus = 2.0*(z - self.z1)/(self.z2 - self.z1)
+        z = x + 1j * y
+        zetaplus = 2.0 * (z - self.z1) / (self.z2 - self.z1)
         return zetaplus
-    
+
     def zetajminus(self, x, y):
-        z = x + 1j*y
-        zetaminus = 2.0*(z - self.z2)/(self.z2 - self.z1)
+        z = x + 1j * y
+        zetaminus = 2.0 * (z - self.z2) / (self.z2 - self.z1)
         return zetaminus
-    
+
     def zetamplus(self, x, y):
-        z = x + 1j*y
-        zetamplus = 2*(z - self.z1[1:])/(self.z2[1:] - self.z1[1:])
+        z = x + 1j * y
+        zetamplus = 2 * (z - self.z1[1:]) / (self.z2[1:] - self.z1[1:])
         return zetamplus
-    
+
     def zetamminus(self, x, y):
-        z = x + 1j*y
-        zetamminus = 2*(z - self.z2[1:])/(self.z2[1:] - self.z1[1:])
+        z = x + 1j * y
+        zetamminus = 2 * (z - self.z2[1:]) / (self.z2[1:] - self.z1[1:])
         return zetamminus
-    
+
     def etaj(self, x, y):
         zjp = self.zetajplus(x, y)
         zjm = self.zetajminus(x, y)
         zmm = self.zetamminus(x, y)
         zmp = self.zetamplus(x, y)
-        etaj = zjp*np.log(zjm/zjp) + 2*np.sum(np.log(zmm/zmp) + 2)
+        etaj = zjp * np.log(zjm / zjp) + 2 * np.sum(np.log(zmm / zmp) + 2)
         return etaj
 
     def potinf(self, x, y, aq=None):
         if aq is None:
             aq = self.model.aq.find_aquifer_data(x, y)
         rv = np.zeros((self.nparam, aq.naq))
-        
-        z = x + 1j*y
+
+        z = x + 1j * y
         yj = self.zetaj(x, y).conj() - self.zetaj(x, y)
         Ljsq = (self.z2 - self.z1) * (self.z2 - self.z1).conj()
         ej = self.etaj(x, y)
-        
+
         isinside, x, y = self.isinside(x, y)
-        
+
         if aq == self.model.aq:
-            rv[0] = -self.N/(32*np.pi)*np.sum(yj*Ljsq*(ej + ej.conj()) + self.N*self.area/(4*np.pi)*(np.log(z - self.z1) + np.log(z.conjugate() - self.z1.conj())))
+            rv[0] = (
+                -self.N
+                / (32 * np.pi)
+                * np.sum(
+                    yj * Ljsq * (ej + ej.conj())
+                    + self.N
+                    * self.area
+                    / (4 * np.pi)
+                    * (np.log(z - self.z1) + np.log(z.conjugate() - self.z1.conj()))
+                )
+            )
         return rv
 
     def disvecinf(self, x, y, aq=None):
@@ -140,14 +154,7 @@ class PolyAreaSink(Element):
         disx = np.zeros(aq.naq)
         disy = np.zeros(aq.naq)
         isinside, x, y = self.isinside(x, y)
-        for ls in self.laplacels:
-            pass
-        for ld in self.besselld:
-            pass
-        for ld in self.lapalceld:
-            pass
-        if isinside:
-            disx[0] = disx[0] + (x - self.xc)
+
         return disx, disy
 
     def isinside(self, x, y):
@@ -156,7 +163,7 @@ class PolyAreaSink(Element):
         isinside = 0
         if x >= self.xmin and self.xmax and y >= self.ymin and y <= self.ymax:
             z = complex(x, y)
-            zdis = abs(z-self.z1) / self.lengths
+            zdis = abs(z - self.z1) / self.lengths
             if min(zdis) < self.tiny:
                 for i in range(len(zdis)):
                     if zdis[i] < self.tiny:
