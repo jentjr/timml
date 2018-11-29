@@ -65,6 +65,7 @@ class PolyAreaSink(Element):
         self.z2[:-1] = self.z1[1:]
         self.z2[-1] = self.z1[0]
         self.lengths = abs(self.z2 - self.z1)
+        
         # find center of area-sink
         self.xc = np.average(self.xp[:-1])
         self.yc = np.average(self.yp[:-1])
@@ -81,26 +82,59 @@ class PolyAreaSink(Element):
             self.xpmax[i] = max(self.xp[i], self.xp[i + 1])
             self.ypmin[i] = min(self.yp[i], self.yp[i + 1])
             self.ypmax[i] = max(self.yp[i], self.yp[i + 1])
+        
+        self.area = polygon_area(self.xy)    
+        
         self.aq = self.model.aq.find_aquifer_data(self.xc, self.yc)
-        # compute constant on inside
-        Tcumsum = np.cumsum(self.model.aq.eigvec[:, 0])
-        NthroughLeakLayer = 1.0 - Tcumsum[:-1]  # Length naq -1
+        self.aq.add_element(self)
+        
+    def zetaj(self, x, y):
+        z = x + 1j*y
+        zetaj = (2*z - self.z1 - self.z2)/(self.z2 - self.z1)
+        return zetaj
+
+    def zetajplus(self, x, y):
+        z = x + 1j*y
+        zetaplus = 2.0*(z - self.z1)/(self.z2 - self.z1)
+        return zetaplus
+    
+    def zetajminus(self, x, y):
+        z = x + 1j*y
+        zetaminus = 2.0*(z - self.z2)/(self.z2 - self.z1)
+        return zetaminus
+    
+    def zetamplus(self, x, y):
+        z = x + 1j*y
+        zetamplus = 2*(z - self.z1[1:])/(self.z2[1:] - self.z1[1:])
+        return zetamplus
+    
+    def zetamminus(self, x, y):
+        z = x + 1j*y
+        zetamminus = 2*(z - self.z2[1:])/(self.z2[1:] - self.z1[1:])
+        return zetamminus
+    
+    def etaj(self, x, y):
+        zjp = self.zetajplus(x, y)
+        zjm = self.zetajminus(x, y)
+        zmm = self.zetamminus(x, y)
+        zmp = self.zetamplus(x, y)
+        etaj = zjp*np.log(zjm/zjp) + 2*np.sum(np.log(zmm/zmp) + 2)
+        return etaj
 
     def potinf(self, x, y, aq=None):
         if aq is None:
-            aq = self.model.find_aquifer_data(x, y)
+            aq = self.model.aq.find_aquifer_data(x, y)
         rv = np.zeros((self.nparam, aq.naq))
+        
+        z = x + 1j*y
+        yj = self.zetaj(x, y).conj() - self.zetaj(x, y)
+        Ljsq = (self.z2 - self.z1) * (self.z2 - self.z1).conj()
+        ej = self.etaj(x, y)
+        
         isinside, x, y = self.isinside(x, y)
-        for ls in self.laplacels:
-            pass
-        for ld in self.besselld:
-            pass
-        for ld in self.laplaceld:
-            pass
-        if isinside:
-            rv[0] = rv[0] - 0.5 * (x - self.xc) * (x - self.xc)
-            if aq == self.model.aq:
-                pass
+        
+        if aq == self.model.aq:
+            rv[0] = -self.N/(32*np.pi)*np.sum(yj*Ljsq*(ej + ej.conj()) + self.N*self.area/(4*np.pi)*(np.log(z - self.z1) + np.log(z.conjugate() - self.z1.conj())))
         return rv
 
     def disvecinf(self, x, y, aq=None):
@@ -151,3 +185,14 @@ class PolyAreaSink(Element):
         poly = Polygon(self.xy, closed=True, fill=False)
         ax.add_patch(poly)
         plt.plot()
+
+
+def polygon_area(xy):
+    n = len(xy)
+    area = 0.0
+    for i in range(n):
+        j = (i + 1) % n
+        area += xy[i][0] * xy[j][1]
+        area -= xy[j][0] * xy[i][1]
+    area = abs(area) / 2.0
+    return area
