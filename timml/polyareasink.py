@@ -136,16 +136,15 @@ class PolyAreaSink(Element):
 
         if aq == self.model.aq:
             rv[0] = (
-                -self.N
-                / (32 * np.pi)
+                -1/(32 * np.pi)
                 * np.sum(
                     yj * Ljsq * (ej + ej.conj())
-                    + self.N
+                    + 1
                     * self.area
                     / (4 * np.pi)
                     * (np.log(z - self.z1) + np.log(z.conjugate() - self.z1.conj()))
                 )
-            )
+            ).real
         return rv
 
     def disvecinf(self, x, y, aq=None):
